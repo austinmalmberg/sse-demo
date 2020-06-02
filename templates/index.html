@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <title>Home</title>
+    </head>
+
+    <body>
+        <div id="notifications">
+
+        </div>
+    </body>
+
+    <script type="text/javascript">
+        if (typeof(EventSource) !== "undefined") {
+            initSSE();
+        }
+
+        function addEvent(text) {
+            const output = document.getElementById("notifications");
+            const newElement = document.createElement("p");
+            newElement.innerText = text;
+
+            output.appendChild(newElement);
+        }
+
+        function compileSSEMessage(event) {
+            const { user, time, payload } = JSON.parse(event.data);
+
+            return `For ${user} on ${time}\nMessage: ${payload}`;
+        }
+
+        function initSSE() {
+            const eventSource = new EventSource("{{ url_for('notifications') }}");
+
+            eventSource.onopen = (event) => addEvent('Connected to server side events');
+            eventSource.onmessage = (event) => {
+                const message = compileSSEMessage(event);
+                addEvent(message);
+            };
+            eventSource.onerror = console.error;
+        }
+    </script>
+</html>
